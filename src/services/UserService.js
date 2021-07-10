@@ -11,6 +11,7 @@ module.exports = {
       todos: [],
     };
     users.push(user);
+    return user;
   },
 
   isUserRegistered(username) {
@@ -22,15 +23,8 @@ module.exports = {
   },
 
   findUser(username) {
-    const user = users.find((u) => u.username === username);
-    console.log(`User found ${user}`);
-    return user;
-  },
-
-  getUsers() {
-    return users;
+    return getUser(username);
   }
-
 };
 
 const getUser = (username) => {

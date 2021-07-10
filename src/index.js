@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const { createUser, isUserRegistered, findUser, getUsers } = require('./services/UserService');
+const { createUser, isUserRegistered, findUser } = require('./services/UserService');
+const { createTodo, updateTodo } = require('./services/TodoService');
 
 const app = express();
 
@@ -15,6 +16,7 @@ function checksExistsUserAccount(request, response, next) {
   }
 
   request.username = username;
+
   return next();
 }
 
@@ -25,22 +27,38 @@ app.post('/users', (request, response) => {
     return response.status(400).json({error: `User ${username} already exists!`});
   }
 
-  createUser(name, username);
-  return response.status(201).send();
+  const user = createUser(name, username);
+
+  return response.status(201).json(user);
 });
 
 app.get('/todos', checksExistsUserAccount, (request, response) => {
   const { username } = request;
+
   const user = findUser(username);
+
   return response.json(user.todos);
 });
 
 app.post('/todos', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
+  const { username } = request;
+  const { title, deadline } = request.body;
+  
+  const user = findUser(username);
+  const todo = createTodo(user, title, deadline);
+
+  return response.status(201).json(todo);
 });
 
 app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
+  const { id } = request.params;
+  const { username } = request;
+  const { title, deadline } = request.body;
+
+  const user = findUser(username);
+  const todo = updateTodo(user, id, title, deadline);
+
+  return response.json(todo);
 });
 
 app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
