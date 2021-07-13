@@ -1,6 +1,5 @@
 const { v4: uuidv4 } = require("uuid");
-
-const users = [];
+const { users } = require("../models/user");
 
 module.exports = {
   createUser(name, username) {
@@ -24,7 +23,8 @@ module.exports = {
 
   findUser(username) {
     return getUser(username);
-  }
+  },
+  
 };
 
 const getUser = (username) => {

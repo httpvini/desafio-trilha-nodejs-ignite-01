@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { createUser, isUserRegistered, findUser } = require('./services/UserService');
-const { createTodo, updateTodo } = require('./services/TodoService');
+const { createTodo, updateTodo, updateTodoStatus, getTodos } = require('./services/TodoService');
 
 const app = express();
 
@@ -35,17 +35,16 @@ app.post('/users', (request, response) => {
 app.get('/todos', checksExistsUserAccount, (request, response) => {
   const { username } = request;
 
-  const user = findUser(username);
+  const todos = getTodos(username);
 
-  return response.json(user.todos);
+  return response.json(todos);
 });
 
 app.post('/todos', checksExistsUserAccount, (request, response) => {
   const { username } = request;
   const { title, deadline } = request.body;
   
-  const user = findUser(username);
-  const todo = createTodo(user, title, deadline);
+  const todo = createTodo(username, title, deadline);
 
   return response.status(201).json(todo);
 });
@@ -55,14 +54,18 @@ app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
   const { username } = request;
   const { title, deadline } = request.body;
 
-  const user = findUser(username);
-  const todo = updateTodo(user, id, title, deadline);
+  const todo = updateTodo(username, id, title, deadline);
 
   return response.json(todo);
 });
 
 app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
+  const { username } = request;
+  const { id } = request.params;
+
+  const todo = updateTodoStatus(username, id);
+
+  return response.json(todo);
 });
 
 app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
