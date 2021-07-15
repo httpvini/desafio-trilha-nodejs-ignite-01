@@ -25,5 +25,4 @@ module.exports = {
   findUser(username) {
     return getUser(username);
   },
-  
 };

@@ -1,7 +1,18 @@
-const express = require('express');
-const cors = require('cors');
-const { createUser, isUserRegistered, findUser } = require('./services/UserService');
-const { createTodo, getTodos, updateTodoTitleAndDeadline, updateTodoStatus, deleteTodo, isTodoRegistered } = require('./services/TodoService');
+const express = require("express");
+const cors = require("cors");
+const {
+  createUser,
+  isUserRegistered,
+  findUser,
+} = require("./services/UserService");
+const {
+  createTodo,
+  getTodos,
+  updateTodoTitleAndDeadline,
+  updateTodoStatus,
+  deleteTodo,
+  isTodoRegistered,
+} = require("./services/TodoService");
 
 const app = express();
 
@@ -10,9 +21,9 @@ app.use(express.json());
 
 function checksExistsUserAccount(request, response, next) {
   const { username } = request.headers;
-  
-  if(!isUserRegistered(username)) {
-    response.status(404).json({error: `User ${username} not found!`});
+
+  if (!isUserRegistered(username)) {
+    response.status(404).json({ error: `User ${username} not found!` });
   }
 
   request.user = findUser(username);
@@ -24,19 +35,25 @@ function checkExistsTodoForUser(request, response, next) {
   const { username } = request.headers;
   const { id } = request.params;
   const user = findUser(username);
-  
-  if(!isTodoRegistered(user, id)) {
-    return response.status(404).json({error: `Todo with id ${id} for user ${user.name} was not found!`})
+
+  if (!isTodoRegistered(user, id)) {
+    return response
+      .status(404)
+      .json({
+        error: `Todo with id ${id} for user ${user.name} was not found!`,
+      });
   }
-  
+
   return next();
 }
 
-app.post('/users', (request, response) => {
+app.post("/users", (request, response) => {
   const { name, username } = request.body;
 
-  if(isUserRegistered(username)) {
-    return response.status(400).json({error: `User ${username} already exists!`});
+  if (isUserRegistered(username)) {
+    return response
+      .status(400)
+      .json({ error: `User ${username} already exists!` });
   }
 
   const user = createUser(name, username);
@@ -44,7 +61,7 @@ app.post('/users', (request, response) => {
   return response.status(201).json(user);
 });
 
-app.get('/todos', checksExistsUserAccount, (request, response) => {
+app.get("/todos", checksExistsUserAccount, (request, response) => {
   const { user } = request;
 
   const todos = getTodos(user);
@@ -52,53 +69,68 @@ app.get('/todos', checksExistsUserAccount, (request, response) => {
   return response.json(todos);
 });
 
-app.post('/todos', checksExistsUserAccount, (request, response) => {
+app.post("/todos", checksExistsUserAccount, (request, response) => {
   const { user } = request;
   const { title, deadline } = request.body;
-  
+
   const todo = createTodo(user, title, deadline);
 
   return response.status(201).json(todo);
 });
 
-app.put('/todos/:id', checksExistsUserAccount, checkExistsTodoForUser, (request, response) => {
-  const { id } = request.params;
-  const { user } = request;
-  const { title, deadline } = request.body;
+app.put(
+  "/todos/:id",
+  checksExistsUserAccount,
+  checkExistsTodoForUser,
+  (request, response) => {
+    const { id } = request.params;
+    const { user } = request;
+    const { title, deadline } = request.body;
 
-  const userData = {
-    user,
-    id,
-    title,
-    deadline
+    const userData = {
+      user,
+      id,
+      title,
+      deadline,
+    };
+
+    const todo = updateTodoTitleAndDeadline(userData);
+
+    return response.json(todo);
   }
+);
 
-  const todo = updateTodoTitleAndDeadline(userData);
+app.patch(
+  "/todos/:id/done",
+  checksExistsUserAccount,
+  checkExistsTodoForUser,
+  (request, response) => {
+    const { user } = request;
+    const { id } = request.params;
 
-  return response.json(todo);
-});
+    const userData = {
+      user,
+      id,
+    };
 
-app.patch('/todos/:id/done', checksExistsUserAccount, checkExistsTodoForUser, (request, response) => {
-  const { user } = request;
-  const { id } = request.params;
+    const todo = updateTodoStatus(userData);
 
-  const userData = {
-    user,
-    id
+    return response.json(todo);
   }
+);
 
-  const todo = updateTodoStatus(userData);
+app.delete(
+  "/todos/:id",
+  checksExistsUserAccount,
+  checkExistsTodoForUser,
+  (request, response) => {
+    const { user } = request;
+    const { id } = request.params;
 
-  return response.json(todo);
-});
+    deleteTodo(user, id);
 
-app.delete('/todos/:id', checksExistsUserAccount, checkExistsTodoForUser, (request, response) => {
-  const { user } = request;
-  const { id } = request.params;
-  
-  deleteTodo(user, id);
-
-  return response.status(204).json([]);
-});
+    return response.status(204).json([]);
+  }
+);
 
 module.exports = app;

@@ -14,23 +14,23 @@ module.exports = {
     return todo;
   },
 
-  updateTodoTitleAndDeadline(userData){
+  updateTodoTitleAndDeadline(userData) {
     return updateTodo(userData);
   },
 
-  updateTodoStatus(userData){
+  updateTodoStatus(userData) {
     return updateTodo(userData);
   },
 
-  deleteTodo(user, id){
+  deleteTodo(user, id) {
     const todoIndex = findTodoIndex(user, id);
     user.todos.splice(todoIndex, 1);
   },
 
-  isTodoRegistered(user, id){
+  isTodoRegistered(user, id) {
     const todo = findTodo(user, id);
-    
-    if(!todo){
+
+    if (!todo) {
       return false;
     }
     return true;
@@ -51,12 +51,12 @@ const updateTodo = ({ user, id, title, deadline }) => {
     user.todos[todoIndex] = { ...todo, title, deadline };
   }
   return user.todos[todoIndex];
-}
+};
 
 const findTodoIndex = (user, id) => {
   return user.todos.findIndex((todo) => todo.id == id);
-}
+};
 
 const findTodo = (user, id) => {
-  return user.todos.find(todo => todo.id === id);
-}
+  return user.todos.find((todo) => todo.id === id);
+};
