@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { createUser, isUserRegistered, findUser } = require('./services/UserService');
-const { createTodo, updateTodo, updateTodoStatus, getTodos } = require('./services/TodoService');
+const { createTodo, getTodos, updateTodoTitleAndDeadline, updateTodoStatus, deleteTodo } = require('./services/TodoService');
 
 const app = express();
 
@@ -15,7 +15,7 @@ function checksExistsUserAccount(request, response, next) {
     response.status(404).json({error: `User ${username} not found!`});
   }
 
-  request.username = username;
+  request.user = findUser(username);
 
   return next();
 }
@@ -33,43 +33,60 @@ app.post('/users', (request, response) => {
 });
 
 app.get('/todos', checksExistsUserAccount, (request, response) => {
-  const { username } = request;
+  const { user } = request;
 
-  const todos = getTodos(username);
+  const todos = getTodos(user);
 
   return response.json(todos);
 });
 
 app.post('/todos', checksExistsUserAccount, (request, response) => {
-  const { username } = request;
+  const { user } = request;
   const { title, deadline } = request.body;
   
-  const todo = createTodo(username, title, deadline);
+  const todo = createTodo(user, title, deadline);
 
   return response.status(201).json(todo);
 });
 
 app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
   const { id } = request.params;
-  const { username } = request;
+  const { user } = request;
   const { title, deadline } = request.body;
 
-  const todo = updateTodo(username, id, title, deadline);
+  const userData = {
+    user,
+    id,
+    title,
+    deadline
+  }
+
+  const todo = updateTodoTitleAndDeadline(userData);
 
   return response.json(todo);
 });
 
 app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
-  const { username } = request;
+  const { user } = request;
   const { id } = request.params;
 
-  const todo = updateTodoStatus(username, id);
+  const userData = {
+    user,
+    id
+  }
+
+  const todo = updateTodoStatus(userData);
 
   return response.json(todo);
 });
 
 app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
+  const { user } = request;
+  const { id } = request.params;
+  
+  deleteTodo(user, id);
+
+  return response.status(200).json(getTodos(user));
 });
 
 module.exports = app;

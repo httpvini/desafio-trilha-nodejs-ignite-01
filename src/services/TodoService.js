@@ -1,10 +1,7 @@
 const { v4: uuidv4 } = require("uuid");
-const { users } = require("../models/user");
-const { findUser } = require("../services/UserService");
 
 module.exports = {
-  createTodo(username, title, deadline) {
-    const user = findUser(username);
+  createTodo(user, title, deadline) {
     const todo = {
       id: uuidv4(),
       title,
@@ -17,28 +14,36 @@ module.exports = {
     return todo;
   },
 
-  updateTodo(username, id, title, deadline) {
-    const user = findUser(username);
-    const todoIndex = findTodoIndex(user, id);
-    const todo = user.todos[todoIndex];
-    user.todos[todoIndex] = { ...todo, title, deadline };
-    return user.todos[todoIndex];
+  updateTodoTitleAndDeadline(userData){
+    return updateTodo(userData);
   },
 
-  updateTodoStatus(username, id) {
-    const user = findUser(username);
-    const todoIndex = findTodoIndex(user, id);
-    const todo = user.todos[todoIndex];
-    user.todos[todoIndex] = { ...todo, done: true };
-    return user.todos[todoIndex];
+  updateTodoStatus(userData){
+    return updateTodo(userData);
   },
 
-  getTodos(username) {
-    const user = findUser(username);
+  deleteTodo(user, id){
+    const todoIndex = findTodoIndex(user, id);
+    user.todos.splice(todoIndex, 1);
+  },
+
+  getTodos(user) {
     return user.todos;
   },
 };
 
+const updateTodo = ({ user, id, title, deadline }) => {
+  const todoIndex = findTodoIndex(user, id);
+  const todo = user.todos[todoIndex];
+
+  if (!title && !deadline) {
+    user.todos[todoIndex] = { ...todo, done: true };
+  } else {
+    user.todos[todoIndex] = { ...todo, title, deadline };
+  }
+  return user.todos[todoIndex];
+}
+
 const findTodoIndex = (user, id) => {
-  return (todoIndex = user.todos.findIndex((todo) => todo.id == id));
-};
+  return user.todos.findIndex((todo) => todo.id == id);
+}
