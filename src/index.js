@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { createUser, isUserRegistered, findUser } = require('./services/UserService');
-const { createTodo, getTodos, updateTodoTitleAndDeadline, updateTodoStatus, deleteTodo } = require('./services/TodoService');
+const { createTodo, getTodos, updateTodoTitleAndDeadline, updateTodoStatus, deleteTodo, isTodoRegistered } = require('./services/TodoService');
 
 const app = express();
 
@@ -17,6 +17,18 @@ function checksExistsUserAccount(request, response, next) {
 
   request.user = findUser(username);
 
+  return next();
+}
+
+function checkExistsTodoForUser(request, response, next) {
+  const { username } = request.headers;
+  const { id } = request.params;
+  const user = findUser(username);
+  
+  if(!isTodoRegistered(user, id)) {
+    return response.status(404).json({error: `Todo with id ${id} for user ${user.name} was not found!`})
+  }
+  
   return next();
 }
 
@@ -49,7 +61,7 @@ app.post('/todos', checksExistsUserAccount, (request, response) => {
   return response.status(201).json(todo);
 });
 
-app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
+app.put('/todos/:id', checksExistsUserAccount, checkExistsTodoForUser, (request, response) => {
   const { id } = request.params;
   const { user } = request;
   const { title, deadline } = request.body;
@@ -66,7 +78,7 @@ app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
   return response.json(todo);
 });
 
-app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
+app.patch('/todos/:id/done', checksExistsUserAccount, checkExistsTodoForUser, (request, response) => {
   const { user } = request;
   const { id } = request.params;
 
@@ -80,13 +92,13 @@ app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
   return response.json(todo);
 });
 
-app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
+app.delete('/todos/:id', checksExistsUserAccount, checkExistsTodoForUser, (request, response) => {
   const { user } = request;
   const { id } = request.params;
   
   deleteTodo(user, id);
 
-  return response.status(200).json(getTodos(user));
+  return response.status(204).json([]);
 });
 
 module.exports = app;

@@ -27,6 +27,15 @@ module.exports = {
     user.todos.splice(todoIndex, 1);
   },
 
+  isTodoRegistered(user, id){
+    const todo = findTodo(user, id);
+    
+    if(!todo){
+      return false;
+    }
+    return true;
+  },
+
   getTodos(user) {
     return user.todos;
   },
@@ -46,4 +55,8 @@ const updateTodo = ({ user, id, title, deadline }) => {
 
 const findTodoIndex = (user, id) => {
   return user.todos.findIndex((todo) => todo.id == id);
+}
+
+const findTodo = (user, id) => {
+  return user.todos.find(todo => todo.id === id);
 }
